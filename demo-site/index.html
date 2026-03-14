@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoFlow Demo - Multi-Step Onboarding</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>AutoFlow Demo</h1>
+            <p>Test the recorder by completing this multi-step onboarding process. Each step involves dynamic interactions that usually take time to repeat manually.</p>
+        </header>
+
+        <!-- Stepper Indicator -->
+        <div class="stepper">
+            <div class="step active" data-step="1">1<span>Account</span></div>
+            <div class="step" data-step="2">2<span>Profile</span></div>
+            <div class="step" data-step="3">3<span>Preferences</span></div>
+            <div class="step" data-step="4">4<span>Finish</span></div>
+        </div>
+
+        <div class="card">
+            <!-- Step 1: Account Info -->
+            <div id="step-1" class="form-step active">
+                <h2>Create Account</h2>
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="johndoe123" data-testid="reg-username">
+                </div>
+                <div class="input-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="john@example.com" data-testid="reg-email">
+                </div>
+                <button class="next-btn" onclick="nextStep(2)">Continue to Profile</button>
+            </div>
+
+            <!-- Step 2: Profile Details -->
+            <div id="step-2" class="form-step">
+                <h2>Profile Details</h2>
+                <div class="input-group">
+                    <label for="fullname">Full Name</label>
+                    <input type="text" id="fullname" placeholder="John Doe">
+                </div>
+                <div class="input-group">
+                    <label for="avatar">Profile Picture</label>
+                    <input type="file" id="avatar" accept="image/*">
+                    <div id="file-name-preview" style="font-size: 0.8rem; margin-top: 5px; color: var(--primary-light);"></div>
+                </div>
+                <div class="input-group">
+                    <label for="role">Primary Role</label>
+                    <select id="role">
+                        <option value="">Select a role...</option>
+                        <option value="dev">Developer</option>
+                        <option value="des">Designer</option>
+                        <option value="pm">Product Manager</option>
+                    </select>
+                </div>
+                <div class="actions">
+                    <button class="back-btn" onclick="nextStep(1)">Back</button>
+                    <button class="next-btn" onclick="nextStep(3)">Continue to Prefs</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Preferences -->
+            <div id="step-3" class="form-step">
+                <h2>Preferences</h2>
+                <div class="input-group">
+                    <label>Dashboard Theme</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="theme" value="light"> Light</label>
+                        <label><input type="radio" name="theme" value="dark"> Dark</label>
+                        <label><input type="radio" name="theme" value="glass"> Glassmorphism</label>
+                    </div>
+                </div>
+                <div class="input-group checkbox-group">
+                    <label><input type="checkbox" id="newsletter"> Subscribe to developer updates</label>
+                </div>
+                <div class="actions">
+                    <button class="back-btn" onclick="nextStep(2)">Back</button>
+                    <button class="next-btn" onclick="nextStep(4)">Complete Setup</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Success -->
+            <div id="step-4" class="form-step success-view">
+                <div class="success-icon">Ready! ✅</div>
+                <h2>Setup Complete</h2>
+                <p>You've successfully finished the demo. If you were recording this with **AutoFlow**, you can now play it back to see the steps automate!</p>
+                <button class="reset-btn" onclick="location.reload()">Start Over</button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>How to test:</h3>
+            <ol>
+                <li>Open <strong>AutoFlow</strong> and click <strong>Start Recording</strong>.</li>
+                <li>Fill out all 3 steps of this form.</li>
+                <li>Reach the "Ready!" screen.</li>
+                <li>Stop Recording in the extension.</li>
+                <li>Refresh this page and click <strong>Play</strong> in the extension!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
