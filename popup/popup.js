@@ -106,7 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
             <button class="export-btn small-btn" title="Export">
               <span style="font-size: 10px;">💾</span>
             </button>
-            <button class="play-btn small-btn" data-id="${session.id}">
+            <button class="delete-btn small-btn" title="Delete" data-id="${session.id}">
+              <span style="font-size: 10px;">🗑️</span>
+            </button>
+            <button class="play-btn small-btn" title="Play Result" data-id="${session.id}">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
               </svg>
@@ -122,8 +125,23 @@ document.addEventListener('DOMContentLoaded', () => {
           e.stopPropagation();
           exportSession(session);
         });
+
+        item.querySelector('.delete-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteSession(session.id);
+        });
         
         sessionList.appendChild(item);
+      });
+    });
+  }
+
+  function deleteSession(sessionId) {
+    if (!confirm('Are you sure you want to delete this recording?')) return;
+    chrome.storage.local.get({ sessions: [] }, (data) => {
+      const sessions = data.sessions.filter(s => s.id !== sessionId);
+      chrome.storage.local.set({ sessions }, () => {
+        loadSessions();
       });
     });
   }
