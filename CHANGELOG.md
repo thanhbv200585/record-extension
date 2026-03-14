@@ -2,6 +2,14 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.3.0] - 2026-03-14
+### ✨ Added
+- **Bulk Import System**: Support for importing multiple flows from a single JSON file.
+- **Smart Naming**: Automatically appends `(Imported)` to imported flows to prevent confusion.
+- **UI Notifications**: Added success/failure notifications in the popup when importing data.
+- **Improved Rich Text Support**: Enhanced detection for Notion-style contenteditable blocks.
+- **State Persistence**: Fixed "State Amnesia" where recording state was lost on page refresh.
+
 ## [1.2.0] - 2026-03-14
 ### ✨ Added
 - **API Traffic Recording**: The extension now automatically captures all background API calls (fetch/XHR) during your recording using the `chrome.debugger` Network domain.

@@ -53,6 +53,10 @@ Standard JavaScript cannot programmatically set a file input value due to securi
 - **Filtering**: Automatically excludes data URLs, extension internal calls, and browser telemetry.
 - **Postman Mapping**: Converts internal request logs (Method, Headers, URL, Body) into a **Postman Collection v2.1** schema for instant backend compatibility.
 
+### 3. Bulk Data Management
+- **Persistence**: Data is saved in `chrome.storage.local` with the `unlimitedStorage` permission.
+- **Bulk Import**: The import engine supports both single session objects and arrays of sessions, automatically handling ID collisions and naming.
+
 ---
 
 ## 🛡️ Stability & Security

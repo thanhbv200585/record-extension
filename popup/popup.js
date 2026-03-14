@@ -20,17 +20,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const session = JSON.parse(event.target.result);
-        if (session.actions && Array.isArray(session.actions)) {
-          saveSession(session);
+        const data = JSON.parse(event.target.result);
+        
+        // Handle both single session or array of sessions
+        if (Array.isArray(data)) {
+          let count = 0;
+          data.forEach(s => {
+            if (s.actions && Array.isArray(s.actions)) {
+              saveSession(s, false); // Don't refresh list every time
+              count++;
+            }
+          });
+          loadSessions();
+          showNotification(`Successfully imported ${count} flows!`);
+        } else if (data.actions && Array.isArray(data.actions)) {
+          saveSession(data);
+          showNotification('Flow imported successfully!');
         } else {
-          alert('Invalid session file format');
+          alert('Invalid session file format. Missing "actions" array.');
         }
       } catch (err) {
-        alert('Failed to parse session file');
+        console.error('Import error:', err);
+        alert('Failed to parse JSON file.');
       }
     };
     reader.readAsText(file);
+    importInput.value = ''; // Reset for next time
   });
 
   recordBtn.addEventListener('click', () => {
@@ -43,18 +58,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  function saveSession(newSession) {
+  function saveSession(newSession, shouldRefresh = true) {
     chrome.storage.local.get({ sessions: [] }, (data) => {
       const sessions = data.sessions;
+      const id = Date.now() + Math.floor(Math.random() * 1000); // More unique
+      
       sessions.push({
         ...newSession,
-        id: Date.now(), // Give it a new ID to avoid collisions
-        name: `Imported: ${newSession.name}`
+        id: id,
+        name: newSession.name.includes('(Imported)') ? newSession.name : `${newSession.name} (Imported)`
       });
+      
       chrome.storage.local.set({ sessions }, () => {
-        loadSessions();
+        if (shouldRefresh) loadSessions();
       });
     });
+  }
+
+  function showNotification(text) {
+    const badge = document.getElementById('status');
+    const originalText = badge.textContent;
+    const originalClass = badge.className;
+    
+    badge.textContent = text;
+    badge.className = 'status-badge success'; // Blue/Green
+    badge.style.background = 'rgba(34, 197, 94, 0.2)';
+    badge.style.color = '#22c55e';
+    
+    setTimeout(() => {
+      badge.textContent = originalText;
+      badge.className = originalClass;
+      badge.style.background = '';
+      badge.style.color = '';
+    }, 2500);
   }
 
   function startRecording() {
