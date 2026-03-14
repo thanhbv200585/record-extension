@@ -1,6 +1,8 @@
 let isRecording = false;
 let currentSession = [];
+let networkRequests = [];
 let lastActionTime = 0;
+let attachedTabId = null;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Background received message:', message);
@@ -8,13 +10,29 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'START_RECORDING') {
     isRecording = true;
     currentSession = [];
+    networkRequests = [];
     lastActionTime = Date.now();
+    
+    // Attach debugger to capture API calls
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const activeTab = tabs[0];
+      if (activeTab) {
+        attachedTabId = activeTab.id;
+        startNetworkRecording(attachedTabId);
+      }
+    });
+
     notifyContentScripts({ type: 'RECORDING_STATE_CHANGED', isRecording: true });
     sendResponse({ status: 'started' });
   } 
   
   else if (message.type === 'STOP_RECORDING') {
     isRecording = false;
+    if (attachedTabId) {
+      stopNetworkRecording(attachedTabId);
+      attachedTabId = null;
+    }
+    
     notifyContentScripts({ type: 'RECORDING_STATE_CHANGED', isRecording: false });
     // Save to storage
     chrome.storage.local.get({ sessions: [] }, (data) => {
@@ -22,7 +40,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const newSession = {
         id: Date.now(),
         name: `Session ${new Date().toLocaleString()}`,
-        actions: currentSession
+        actions: currentSession,
+        networkRequests: networkRequests
       };
       sessions.push(newSession);
       chrome.storage.local.set({ sessions }, () => {
@@ -92,11 +111,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+function startNetworkRecording(tabId) {
+  chrome.debugger.attach({ tabId }, '1.3', () => {
+    if (chrome.runtime.lastError) return;
+    chrome.debugger.sendCommand({ tabId }, 'Network.enable');
+  });
+}
+
+function stopNetworkRecording(tabId) {
+  chrome.debugger.detach({ tabId }, () => {
+    // Ignore error if already detached
+    if (chrome.runtime.lastError) return;
+  });
+}
+
+// Handle navigation: re-attach if tab reloads
+chrome.webNavigation.onCommitted.addListener((details) => {
+  if (isRecording && attachedTabId === details.tabId && details.frameId === 0) {
+    // Briefly delay to allow tab to register
+    setTimeout(() => {
+      chrome.debugger.sendCommand({ tabId: details.tabId }, 'Network.enable', {}, () => {
+        if (chrome.runtime.lastError) {
+          // Re-attach if lost
+          startNetworkRecording(details.tabId);
+        }
+      });
+    }, 500);
+  }
+});
+
+chrome.debugger.onEvent.addListener((source, method, params) => {
+  if (!isRecording || source.tabId !== attachedTabId) return;
+
+  if (method === 'Network.requestWillBeSent') {
+    const { request, timestamp, wallTime } = params;
+    
+    // Ignore data: URLs and extension internal calls
+    if (request.url.startsWith('data:') || request.url.startsWith('chrome-extension:')) return;
+
+    networkRequests.push({
+      url: request.url,
+      method: request.method,
+      headers: request.headers,
+      postData: request.postData,
+      timestamp: wallTime * 1000 // Convert to ms
+    });
+    console.log('API Call captured:', request.url);
+  }
+});
+
 function notifyContentScripts(message) {
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach(tab => {
       chrome.tabs.sendMessage(tab.id, message).catch(err => {
-        // Ignore errors for tabs where content script isn't loaded
+        // Ignore errors
       });
     });
   });

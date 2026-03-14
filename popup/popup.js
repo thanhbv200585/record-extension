@@ -103,8 +103,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="session-meta">${session.actions.length} steps</span>
           </div>
           <div class="session-controls" style="display:flex; gap:4px;">
-            <button class="export-btn small-btn" title="Export">
+            <button class="export-btn small-btn" title="Export JSON">
               <span style="font-size: 10px;">💾</span>
+            </button>
+            <button class="postman-btn small-btn" title="Export Postman Collection">
+              <span style="font-size: 10px;">📮</span>
             </button>
             <button class="delete-btn small-btn" title="Delete" data-id="${session.id}">
               <span style="font-size: 10px;">🗑️</span>
@@ -126,6 +129,11 @@ document.addEventListener('DOMContentLoaded', () => {
           exportSession(session);
         });
 
+        item.querySelector('.postman-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          exportToPostman(session);
+        });
+
         item.querySelector('.delete-btn').addEventListener('click', (e) => {
           e.stopPropagation();
           deleteSession(session.id);
@@ -144,6 +152,58 @@ document.addEventListener('DOMContentLoaded', () => {
         loadSessions();
       });
     });
+  }
+
+  function exportToPostman(session) {
+    if (!session.networkRequests || session.networkRequests.length === 0) {
+      alert('No API calls captured in this session.');
+      return;
+    }
+
+    const postmanCollection = {
+      info: {
+        name: `AutoFlow: ${session.name}`,
+        _postman_id: crypto.randomUUID(),
+        description: "Exported from AutoFlow Recorder",
+        schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+      },
+      item: session.networkRequests.map((req, index) => {
+        const urlObj = new URL(req.url);
+        return {
+          name: `${req.method} ${urlObj.pathname}`,
+          request: {
+            method: req.method,
+            header: Object.entries(req.headers).map(([key, value]) => ({
+              key,
+              value,
+              type: "text"
+            })),
+            body: req.postData ? {
+              mode: "raw",
+              raw: req.postData
+            } : undefined,
+            url: {
+              raw: req.url,
+              protocol: urlObj.protocol.replace(':', ''),
+              host: urlObj.hostname.split('.'),
+              path: urlObj.pathname.split('/').filter(p => p),
+              query: Array.from(urlObj.searchParams.entries()).map(([key, value]) => ({
+                key,
+                value
+              }))
+            }
+          }
+        };
+      })
+    };
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(postmanCollection, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `${session.name}_postman.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
   }
 
   function exportSession(session) {

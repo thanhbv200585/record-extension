@@ -4,7 +4,7 @@ A powerful Chrome extension designed for developers to record and replay user in
 
 ![Premium Design](https://img.shields.io/badge/Design-Premium-blueviolet)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-success)
-![Version](https://img.shields.io/badge/Version-1.1.0-blue)
+![Version](https://img.shields.io/badge/Version-1.2.0-blue)
 ![Mode](https://img.shields.io/badge/Mode-Developer-orange)
 
 ## ✨ Features

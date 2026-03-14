@@ -2,6 +2,12 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.2.0] - 2026-03-14
+### ✨ Added
+- **API Traffic Recording**: The extension now automatically captures all background API calls (fetch/XHR) during your recording using the `chrome.debugger` Network domain.
+- **Postman Collection Export**: New 📮 button in the session list to export all captured API calls into a **Postman Collection (v2.1)** JSON file, perfect for backend developers and API testing.
+- **Advanced Request Capture**: Captures Methods, URL Query Params, Headers, and Request Bodies.
+
 ## [1.1.0] - 2026-03-14
 ### ✨ Added
 - **Replay Control Bar**: Integrated a floating UI at the bottom of the page during replay with:
