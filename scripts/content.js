@@ -12,6 +12,16 @@
   var currentReplayIndex = 0;
   var activeSessionId = null;
 
+  // Request current state from background on load
+  chrome.runtime.sendMessage({ type: 'GET_STATE' }, (response) => {
+    if (chrome.runtime.lastError) return;
+    if (response && response.isRecording) {
+      isRecording = true;
+      showRecordingIndicator();
+      console.log('AutoFlow: Resumed recording state from background');
+    }
+  });
+
   // Listen for state changes from background
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // DISCARD message if this isn't the most recently injected script!
@@ -52,7 +62,15 @@
     if (!isRecording) return;
     if (e.target.type === 'file') return;
     if (isAutoFlowElement(e.target)) return;
-    recordAction('input', e.target, e.target.value);
+
+    // Notion/Rich Editors: Check value first, then innerText, then textContent
+    let val = e.target.value;
+    if (val === undefined || e.target.getAttribute('contenteditable') === 'true') {
+      val = e.target.innerText || e.target.textContent;
+    }
+    
+    console.log('AutoFlow: Action recorded:', val);
+    recordAction('input', e.target, val);
   }, true);
 
   document.addEventListener('change', async (e) => {
@@ -127,7 +145,11 @@
           if (el.type !== 'file') el.click();
         } else if (action.type === 'input') {
           el.focus();
-          el.value = action.value;
+          if (el.value !== undefined) {
+            el.value = action.value;
+          } else {
+            el.innerText = action.value;
+          }
           el.dispatchEvent(new Event('input', { bubbles: true }));
           el.dispatchEvent(new Event('change', { bubbles: true }));
           el.blur();
