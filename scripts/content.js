@@ -168,10 +168,11 @@
 
       let el = null;
       let attempts = 0;
-      while (!el && attempts < 30) {
+      // Increased retry limit to 100 (5 seconds total) to handle complex UI transitions
+      while (!el && attempts < 100) {
         if (activeSessionId !== sessionId) return;
         el = document.querySelector(action.selector);
-        // Decrease retry delay to 50ms from 200ms to find elements much faster
+        // Retry every 50ms
         if (!el) { attempts++; await new Promise(r => setTimeout(r, 50)); }
       }
 
@@ -260,27 +261,56 @@
 
     const tagName = el.tagName.toLowerCase();
 
-    // Prefix tag name to ID to avoid targeting wrapper components with the same ID
+    // 1. ID (highest priority - extremely stable)
     if (el.id && !el.id.startsWith('af-')) return `${tagName}#${el.id}`;
 
-    const dataAttr = Array.from(el.attributes).find(attr =>
-      attr.name.startsWith('data-test') || attr.name === 'name' || attr.name === 'role'
-    );
-    if (dataAttr) return `${tagName}[${dataAttr.name}="${dataAttr.value}"]`;
+    // 2. High-quality semantic attributes
+    const bestAttrs = ['data-test', 'data-id', 'data-cy', 'name', 'role', 'aria-label', 'placeholder', 'title'];
+    for (const attrName of bestAttrs) {
+        const val = el.getAttribute(attrName);
+        if (val) return `${tagName}[${attrName}="${val}"]`;
+    }
 
+    // 3. Build a relative path anchored to the nearest ID'd parent
     const path = [];
-    while (el && el.nodeType === Node.ELEMENT_NODE) {
-      let selector = el.nodeName.toLowerCase();
-      if (el.parentNode) {
-        const siblings = Array.from(el.parentNode.children).filter(s => s.nodeName === el.nodeName);
+    let current = el;
+    while (current && current.nodeType === Node.ELEMENT_NODE) {
+      let selector = current.nodeName.toLowerCase();
+      
+      // If we hit an ID, stop and anchor the selector there
+      if (current.id && !current.id.startsWith('af-')) {
+        path.unshift(`${current.nodeName.toLowerCase()}#${current.id}`);
+        break;
+      }
+
+      // Try to use semantic attributes at each level to keep path specific
+      let levelAttr = null;
+      for (const attrName of bestAttrs) {
+        const val = current.getAttribute(attrName);
+        if (val) {
+          levelAttr = `[${attrName}="${val}"]`;
+          break;
+        }
+      }
+
+      if (levelAttr) {
+        selector += levelAttr;
+      } else if (current.parentNode) {
+        // Fallback to nth-child only when no attributes are available
+        const siblings = Array.from(current.parentNode.children).filter(s => s.nodeName === current.nodeName);
         if (siblings.length > 1) {
-          const index = Array.from(el.parentNode.children).indexOf(el) + 1;
+          const index = Array.from(current.parentNode.children).indexOf(current) + 1;
           selector += `:nth-child(${index})`;
         }
       }
+
       path.unshift(selector);
-      el = el.parentNode;
+      current = current.parentNode;
+      
+      // Safety break: don't build paths longer than 5 levels if not anchored to an ID
+      if (path.length > 5 && (!current || !current.id)) break;
     }
+
     return path.join(' > ');
   }
 

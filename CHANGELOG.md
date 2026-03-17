@@ -2,6 +2,12 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.6.0] - 2026-03-18
+### ✨ Added
+- **Deep API Inspection**: Capture full Request and Response bodies for all background API calls triggered during automation.
+- **Interactive Payload Viewer**: Expandable API rows in the Dashboard reveal detailed JSON payloads with syntax highlighting.
+- **Smart Filtering**: Automatically filters and captures only relevant JSON/Text payloads to optimize storage and performance.
+
 ## [1.5.0] - 2026-03-18
 ### ✨ Added
 - **Full-featured Dashboard**: New dedicated management page (`manager.html`) to view and organize all flows in a split-pane interface.

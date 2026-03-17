@@ -159,19 +159,37 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
   if (!isRecording || source.tabId !== attachedTabId) return;
 
   if (method === 'Network.requestWillBeSent') {
-    const { request, timestamp, wallTime } = params;
+    const { request, requestId, wallTime } = params;
     
-    // Ignore data: URLs and extension internal calls
     if (request.url.startsWith('data:') || request.url.startsWith('chrome-extension:')) return;
 
+    // Track request
     networkRequests.push({
+      requestId,
       url: request.url,
       method: request.method,
       headers: request.headers,
-      postData: request.postData,
-      timestamp: wallTime * 1000 // Convert to ms
+      requestBody: request.postData || null,
+      timestamp: wallTime * 1000
     });
-    console.log('API Call captured:', request.url);
+  }
+
+  if (method === 'Network.responseReceived') {
+    const { requestId, response } = params;
+    const req = networkRequests.find(r => r.requestId === requestId);
+    if (!req) return;
+
+    req.status = response.status;
+    req.mimeType = response.mimeType;
+    req.responseHeaders = response.headers;
+
+    // Only fetch body for JSON/Text to save space and avoid binary issues
+    if (response.mimeType.includes('json') || response.mimeType.includes('text')) {
+      chrome.debugger.sendCommand({ tabId: source.tabId }, 'Network.getResponseBody', { requestId }, (result) => {
+        if (chrome.runtime.lastError || !result) return;
+        req.responseBody = result.body;
+      });
+    }
   }
 });
 

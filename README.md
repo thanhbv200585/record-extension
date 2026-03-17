@@ -4,13 +4,15 @@ A powerful Chrome extension designed for developers to record and replay user in
 
 ![Premium Design](https://img.shields.io/badge/Design-Premium-blueviolet)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-success)
-![Version](https://img.shields.io/badge/Version-1.5.0-blue)
+![Version](https://img.shields.io/badge/Version-1.6.0-blue)
 ![Mode](https://img.shields.io/badge/Mode-Developer-orange)
 
 ## ✨ Features
 
-- **Advanced Step Editor**: View and modify your flows in a dedicated high-res dashboard. Perfect for fine-tuning automation steps.
-- **Variable System**: Use `{{variables}}` to inject dynamic data (like usernames, payment amounts) during replay.
+- **API Payload Inspection**: Expandable API rows in the Dashboard reveal detailed JSON payloads with syntax highlighting.
+- **Deep API Inspection**: Capture full Request and Response bodies for all background API calls.
+- **Advanced Step Editor**: Fine-tune your flows with inline editing and step management.
+- **Variable System**: Dynamic data injection using `{{variables}}`.
 - **Smart Recording**: Captures clicks, text inputs, selects, hovers, and file uploads.
 - **Smart Coalescing**: Merges fast typing into single actions to prevent background API spam.
 - **Resilient Selectors**: Uses a multi-layered selection strategy.

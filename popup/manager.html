@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>AutoFlow Dashboard</title>
@@ -15,72 +16,444 @@
             --text-dim: #94a3b8;
             --success: #22c55e;
         }
-        body { width: 1000px; height: 750px; margin: 0; padding: 24px; background: var(--bg); color: var(--text-main); font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
-        .dashboard-container { display: grid; grid-template-columns: 320px 1fr; gap: 32px; height: 100%; }
-        
-        .sidebar { background: var(--sidebar-bg); backdrop-filter: blur(12px); border-radius: 20px; padding: 24px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; gap: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; }
-        .session-list { flex-grow: 1; overflow-y: auto; margin-right: -10px; padding-right: 10px; }
-        .main-content { background: var(--sidebar-bg); backdrop-filter: blur(12px); border-radius: 20px; padding: 32px; border: 1px solid rgba(255, 255, 255, 0.1); overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
 
-        .section-header { font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 12px; font-weight: 700; }
-        
+        body {
+            width: 1400px;
+            height: 850px;
+            margin: 0;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 1.5fr;
+            gap: 24px;
+            height: 100%;
+        }
+
+        .sidebar {
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .session-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-right: -10px;
+            padding-right: 10px;
+        }
+
+        .main-content {
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .network-pane {
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        #network-log-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+
+        .section-header {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Session List Sidebar */
+        .session-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+
+        .session-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateX(2px);
+        }
+
+        .session-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            display: block;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .session-meta {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
         /* Premium Buttons */
-        .main-btn { background: var(--primary); color: white; border: none; padding: 10px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-        .main-btn:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4); }
-        
-        .secondary-btn { background: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-        .secondary-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-1px); }
+        .main-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .main-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .secondary-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
 
         /* Step Editor Styles */
-        .step-item { background: var(--card-bg); border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.05); display: flex; align-items: start; gap: 16px; transition: transform 0.2s, background 0.2s; }
-        .step-item:hover { background: rgba(255, 255, 255, 0.06); transform: translateX(4px); }
-        
-        .step-index { background: var(--primary); color: white; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3); }
-        .step-details { flex-grow: 1; }
-        .step-type { font-weight: 800; text-transform: uppercase; font-size: 12px; color: #818cf8; letter-spacing: 0.05em; }
-        .step-selector { font-size: 12px; color: var(--text-dim); display: block; margin-top: 4px; font-family: 'JetBrains Mono', 'Fira Code', monospace; background: rgba(0,0,0,0.2); padding: 4px 8px; border-radius: 6px; }
-        
-        .step-input { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 8px; padding: 8px 12px; width: 100%; margin-top: 12px; font-size: 13px; outline: none; transition: border-color 0.2s; }
-        .step-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+        .step-item {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            transition: background 0.2s;
+        }
 
-        .var-section { margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
-        .var-item { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
-        .var-input { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 6px; padding: 6px 10px; font-size: 12px; flex-grow: 1; }
-        
-        .save-banner { position: fixed; bottom: 32px; right: 32px; background: var(--success); color: white; padding: 14px 28px; border-radius: 12px; font-weight: 600; box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4); z-index: 1000; opacity: 0; transform: translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
-        .save-banner.show { opacity: 1; transform: translateY(0); }
+        .step-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
 
-        .api-mapping { margin-top: 12px; border-top: 1px dashed rgba(251, 191, 36, 0.3); padding-top: 8px; }
-        .api-call-item { display: flex; align-items: center; gap: 8px; font-size: 11px; margin-bottom: 4px; color: #e2e8f0; }
-        .api-method { font-weight: bold; padding: 1px 4px; border-radius: 4px; background: rgba(16, 185, 129, 0.2); color: #10b981; min-width: 40px; text-align: center; }
-        .api-url { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); flex-grow: 1; font-family: monospace; }
+        .step-index {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-details {
+            flex-grow: 1;
+        }
+
+        .step-type {
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 11px;
+            color: #818cf8;
+            letter-spacing: 0.05em;
+        }
+
+        .step-selector {
+            font-size: 11px;
+            color: var(--text-dim);
+            display: block;
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .step-input {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            margin-top: 8px;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .var-section {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .var-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .var-input {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            flex-grow: 1;
+        }
+
+        .api-call-item {
+            margin-bottom: 8px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .api-call-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+
+        .api-call-header:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .api-method {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            min-width: 50px;
+            text-align: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .api-status {
+            font-weight: bold;
+            color: #fbbf24;
+            margin-left: auto;
+            width: 35px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .api-url {
+            color: var(--text-dim);
+            flex-grow: 1;
+            font-family: 'JetBrains Mono', monospace;
+            word-break: break-all;
+            white-space: normal;
+            line-height: 1.4;
+        }
+
+        .api-details {
+            display: none;
+            padding: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+        }
+
+        .api-details.expand {
+            display: block;
+        }
+
+        .payload-box {
+            margin-bottom: 16px;
+        }
+
+        .payload-title {
+            font-size: 11px;
+            color: #818cf8;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .payload-content {
+            background: #000;
+            color: #10b981;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            max-height: 300px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            font-size: 11px;
+            line-height: 1.5;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            position: relative;
+        }
+
+        .copy-btn {
+            background: rgba(99, 102, 241, 0.1);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: none;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .copy-btn.copied {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .save-banner {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: var(--success);
+            color: white;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.4s;
+            pointer-events: none;
+        }
+
+        .save-banner.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
     </style>
 </head>
+
 <body>
     <div class="dashboard-container">
+        <!-- Pane 1: Flows & Vars -->
         <div class="sidebar">
-            <h2 style="font-size: 18px; margin: 0;">Flows</h2>
-            <div id="side-session-list" class="session-list" style="flex-grow: 1;"></div>
-            
+            <h2 style="font-size: 18px; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">🌊</span> Flows
+            </h2>
+            <div id="side-session-list" class="session-list"></div>
+
             <div class="var-section">
-                <h3 style="font-size: 14px; margin-bottom: 12px;">Global Variables</h3>
+                <div class="section-header"><span>🌍</span> Global Variables</div>
                 <div id="variable-list"></div>
-                <button id="add-var" class="secondary-btn" style="width: 100%; margin-top: 8px; font-size: 12px;">+ Add Variable</button>
+                <button id="add-var" class="secondary-btn" style="width: 100%; margin-top: 8px; font-size: 12px;">+ Add
+                    Variable</button>
             </div>
         </div>
 
+        <!-- Pane 2: Action Editor -->
         <div class="main-content">
-            <div id="editor-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h1 id="editing-session-name" style="margin: 0; font-size: 20px;">Select a flow to edit</h1>
+            <div id="editor-header"
+                style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px;">
+                <div>
+                    <h1 id="editing-session-name" style="margin: 0; font-size: 20px; color: #fff;">Select a flow to edit
+                    </h1>
+                    <div id="session-stats" style="font-size: 12px; color: var(--text-dim); margin-top: 4px;"></div>
+                </div>
                 <button id="save-flow" class="main-btn" style="display: none;">Save Changes</button>
             </div>
             <div id="step-editor-list"></div>
+        </div>
+
+        <!-- Pane 3: Network Log -->
+        <div class="network-pane">
+            <div class="section-header">
+                <span>⚡</span> Network Log
+                <div id="network-stats" style="font-weight: normal; font-size: 11px; margin-left: auto;"></div>
+            </div>
+            <div id="network-log-list">
+                <div style="color: var(--text-dim); font-style: italic; text-align: center; margin-top: 40px;">Select a
+                    flow to view API calls</div>
+            </div>
         </div>
     </div>
 
@@ -88,4 +461,5 @@
 
     <script src="manager.js"></script>
 </body>
+
 </html>
