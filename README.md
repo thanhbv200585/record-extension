@@ -4,16 +4,17 @@ A powerful Chrome extension designed for developers to record and replay user in
 
 ![Premium Design](https://img.shields.io/badge/Design-Premium-blueviolet)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-success)
-![Version](https://img.shields.io/badge/Version-1.4.0-blue)
+![Version](https://img.shields.io/badge/Version-1.5.0-blue)
 ![Mode](https://img.shields.io/badge/Mode-Developer-orange)
 
 ## ✨ Features
 
+- **Advanced Step Editor**: View and modify your flows in a dedicated high-res dashboard. Perfect for fine-tuning automation steps.
+- **Variable System**: Use `{{variables}}` to inject dynamic data (like usernames, payment amounts) during replay.
 - **Smart Recording**: Captures clicks, text inputs, selects, hovers, and file uploads.
 - **Smart Coalescing**: Merges fast typing into single actions to prevent background API spam.
-- **Resilient Selectors**: Uses a multi-layered selection strategy (ID, Data-Attributes, and hierarchical paths) to ensure replays don't break when layouts shift.
+- **Resilient Selectors**: Uses a multi-layered selection strategy.
 - **Turbo Replay**: Optimized execution flow that runs up to 3x faster than real-time.
-- **Dynamic Replay**: Intelligently waits for elements to appear (ideal for SPAs/Async pages).
 - **Session Management**: Rename, delete, or export your flows directly from the dashboard.
 - **Export/Import**: Save your flows as JSON files to share with your team or use later.
 - **Turbo Support (Dev Mode)**: Special handling for file uploads using the Chrome Debugger API to bypass browser security restrictions.

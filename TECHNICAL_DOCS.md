@@ -9,7 +9,8 @@ AutoFlow follows the standard Chrome Extension architecture with a focus on cros
 ### 🧩 Core Components
 1. **Content Script (`scripts/content.js`)**: The "Eyes and Hands". It lives inside the webpage, detects user interactions, and performs the replays.
 2. **Background Service Worker (`scripts/background.js`)**: The "Brain". It manages the global state (Recording On/Off), captures network traffic, and executes safe low-level commands via the Debugger.
-3. **Popup Interface (`popup/`)**: The "Dashboard". Provides the user interface to control recording, view history, and export data.
+3. **Management Dashboard (`popup/manager.html`, `popup/manager.js`)**: A dedicated full-page interface for editing flows, deleting specific steps, and managing global variables.
+4. **Popup Interface (`popup/`)**: The "Quick Access Dashboard". Provides controls for recording, simple history, and the entry point to the full Dashboard.
 
 ---
 
@@ -57,9 +58,11 @@ Standard JavaScript cannot programmatically set a file input value due to securi
 - **Filtering**: Automatically excludes data URLs, extension internal calls, and browser telemetry.
 - **Postman Mapping**: Converts internal request logs (Method, Headers, URL, Body) into a **Postman Collection v2.1** schema for instant backend compatibility.
 
-### 3. Bulk Data Management
-- **Persistence**: Data is saved in `chrome.storage.local` with the `unlimitedStorage` permission.
+### 3. Bulk Data Management & Variable System
+- **Persistence**: Data is saved in `chrome.storage.local`.
+- **Variable Engine**: A global `variables` object stores key-value pairs. During replay, the content script uses a regex-based substitution engine (`{{key}}`) to dynamically inject data into input/select actions.
 - **Bulk Import**: The import engine supports both single session objects and arrays of sessions, automatically handling ID collisions and naming.
+- **Step Editing**: The Management Dashboard allows direct mutation of the `actions` array within stored session objects, enabling users to fix mistakes without re-recording.
 
 ---
 

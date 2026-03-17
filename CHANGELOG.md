@@ -2,6 +2,16 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.5.0] - 2026-03-18
+### ✨ Added
+- **Full-featured Dashboard**: New dedicated management page (`manager.html`) to view and organize all flows in a split-pane interface.
+- **Visual Step Editor**: Users can now edit step values (text inputs, selects) and delete unwanted actions without re-recording.
+- **Dynamic Variable System**: Support for `{{variable_name}}` placeholders. Define global variables in the dashboard and use them across any flow for dynamic data-driven testing.
+- **Persistent Variable Storage**: Global variables are saved securely in local storage and synced across sessions.
+
+### 🔧 Optimized
+- **Advanced Replay Logic**: Automatic detection and substitution of variables during runtime.
+
 ## [1.4.0] - 2026-03-17
 ### ✨ Added
 - **Hover Event Support**: Now captures and replays `mouseover` actions with a smart 500ms debounce to filter out mouse noise.

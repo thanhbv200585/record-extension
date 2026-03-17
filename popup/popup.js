@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   loadSessions();
 
+  const dashboardBtn = document.getElementById('open-dashboard');
+  dashboardBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'popup/manager.html' });
+  });
+
   // Export/Import listeners
   const importInput = document.getElementById('import-input');
   importInput.addEventListener('change', (e) => {

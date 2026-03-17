@@ -142,6 +142,18 @@
       const action = replayActions[currentReplayIndex];
       updateReplayProgress(currentReplayIndex + 1, replayActions.length);
 
+      // Fetch variables for dynamic substitution
+      const storage = await new Promise(r => chrome.storage.local.get({ variables: {} }, r));
+      const vars = storage.variables || {};
+      
+      let processedValue = action.value;
+      if (typeof processedValue === 'string') {
+        // Replace {{name}} with variable value
+        processedValue = processedValue.replace(/\{\{(.+?)\}\}/g, (match, key) => {
+          return vars[key.trim()] !== undefined ? vars[key.trim()] : match;
+        });
+      }
+
       // Wait for recorded delay (speed up replay x2 to x5)
       const waitTime = Math.max((action.delay || 0) * 0.3, 100);
       const startWait = Date.now();
@@ -180,12 +192,12 @@
             const proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement : window.HTMLInputElement;
             const nativeSetter = Object.getOwnPropertyDescriptor(proto?.prototype || {}, 'value')?.set;
             if (nativeSetter) {
-              nativeSetter.call(el, action.value);
+              nativeSetter.call(el, processedValue);
             } else {
-              el.value = action.value;
+              el.value = processedValue;
             }
           } else {
-            el.innerText = action.value;
+            el.innerText = processedValue;
           }
           el.dispatchEvent(new Event('input', { bubbles: true }));
           el.dispatchEvent(new Event('change', { bubbles: true }));

@@ -71,6 +71,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       const actionWithDelay = { 
         ...action, 
+        timestamp: now,
         delay: delay > 5000 ? 2000 : delay // Cap delay to 2 seconds for efficiency, or keep real? Let's keep real but cap at 5s.
       };
       currentSession.push(actionWithDelay);
