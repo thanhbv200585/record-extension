@@ -55,8 +55,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (isRecording) {
       const now = Date.now();
       const delay = now - lastActionTime;
+      const action = message.action;
+      
+      // Coalescing logic for 'input' actions
+      if (action.type === 'input' && currentSession.length > 0) {
+        const lastAction = currentSession[currentSession.length - 1];
+        if (lastAction.type === 'input' && lastAction.selector === action.selector) {
+          // Update the previous input value instead of adding a new action
+          lastAction.value = action.value;
+          lastActionTime = now;
+          console.log('Action coalesced (input):', action.value);
+          return;
+        }
+      }
+
       const actionWithDelay = { 
-        ...message.action, 
+        ...action, 
         delay: delay > 5000 ? 2000 : delay // Cap delay to 2 seconds for efficiency, or keep real? Let's keep real but cap at 5s.
       };
       currentSession.push(actionWithDelay);

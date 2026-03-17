@@ -2,6 +2,18 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.4.0] - 2026-03-17
+### ✨ Added
+- **Hover Event Support**: Now captures and replays `mouseover` actions with a smart 500ms debounce to filter out mouse noise.
+- **Session Renaming**: Added a ✏️ (pencil) icon to the flow list, allowing users to custom-name their recorded sessions.
+- **Input Coalescing**: Consecutive keystrokes in the same field are now merged into a single action, drastically reducing redundant API calls and UI errors during replay.
+- **Interactive Tooltips**: Added descriptive tooltips to main control buttons (Record, Import, Rename, etc.) for better usability.
+
+### 🔧 Fixed & Optimized
+- **Turbo Replay**: Increased replay speed up to 3x by optimizing default delays and reducing element-polling intervals.
+- **Layout Integrity Fix**: Improved selector strategy to avoid overwriting parent wrapper elements (like Angular's `biz-text-field`) which previously caused titles like "Số tài khoản" to disappear.
+- **Auto-Ignore Overlays**: The recorder now automatically ignores clicks and hovers on transient loading indicators (`biz-activity-indicator-singleton`).
+
 ## [1.3.0] - 2026-03-14
 ### ✨ Added
 - **Bulk Import System**: Support for importing multiple flows from a single JSON file.

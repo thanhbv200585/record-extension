@@ -18,13 +18,15 @@ AutoFlow follows the standard Chrome Extension architecture with a focus on cros
 ### Event Capture
 The content script uses high-priority capture phase listeners to detect:
 - **Clicks**: Filters out internal AutoFlow UI clicks.
-- **Inputs**: Supports standard `<input>`/`<textarea>` and **Rich Text Editors** (Notion, Google Docs) by checking `contenteditable` attributes and `innerText`.
+- **Inputs**: Supports standard `<input>`/`<textarea>` and **Rich Text Editors**. Includes **Smart Coalescing** logic in the Background script to merge consecutive keystrokes into a single event, preventing noisy API triggers.
 - **Changes**: Specifically handles file selection and dropdowns.
+- **Hovers**: Captures `mouseover` events with a 500ms debounce to filter out mouse movement noise.
+- **Filters**: Automatically ignores transient loading overlays (e.g., `biz-activity-indicator-singleton`) during both recording and replay.
 
 ### Selector Strategy (`getUniqueSelector`)
 To ensure replays work even if a page slightly changes, AutoFlow uses a hierarchical strategy:
-1. **ID**: If a unique ID exists (e.g., `#submit-btn`), it's the primary choice.
-2. **Data Attributes**: Prioritizes `data-test-*`, `name`, or `role` attributes.
+1. **ID**: If a unique ID exists, it's prefixed with the tag name (e.g., `input#accNo`) to avoid collisions with parent wrappers having the same ID.
+2. **Data Attributes**: Prioritizes `data-test-*`, `name`, or `role` attributes, also prefixed with tag names.
 3. **CSS Path**: Falls back to a full hierarchical path (e.g., `body > div:nth-child(2) > button`).
 
 ---
@@ -33,8 +35,10 @@ To ensure replays work even if a page slightly changes, AutoFlow uses a hierarch
 
 ### Execution Flow
 Replay is handled in a controlled `while` loop within `replaySession`:
-- **Wait Logic**: Respects recorded delays between actions but caps them for speed (min 500ms).
-- **Polling**: Before an action, the script polls the DOM for up to 3 seconds to wait for elements to appear (handling SPA transitions).
+- **Turbo-Wait Logic**: Respects recorded delays but applies a 0.3x speed multiplier and caps the floor at 100ms for high-speed execution.
+- **Smart Element Search**: Polling intervals reduced to 50ms (up to 30 attempts) for near-instant interaction as soon as DOM nodes materialize.
+- **Framework Compatibility**: Uses native setter calls to bypass framework-hijacked `.value` property setters (React/Angular compatibility).
+- **Hover Simulation**: Dispatches `mouseenter`, `mouseover`, and `mousemove` in sequence to trigger dynamic JS dropdowns.
 - **Highlighting**: Uses a temporary purple outline to show the user what is being interacted with.
 
 ---

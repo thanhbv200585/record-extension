@@ -9,8 +9,9 @@
   var isRecording = false;
   var isReplayPaused = false;
   var replayActions = [];
-  var currentReplayIndex = 0;
   var activeSessionId = null;
+  var hoverTimer = null;
+  var lastHoverElement = null;
 
   // Request current state from background on load
   chrome.runtime.sendMessage({ type: 'GET_STATE' }, (response) => {
@@ -26,7 +27,7 @@
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // DISCARD message if this isn't the most recently injected script!
     if (window.autoFlowInstanceId !== instanceId) {
-      return; 
+      return;
     }
 
     try {
@@ -35,7 +36,7 @@
         if (isRecording) showRecordingIndicator();
         else removeRecordingIndicator();
       }
-      
+
       if (message.type === 'REPLAY_SESSION') {
         // Prevent overlapping replays in the same instance
         activeSessionId = Date.now();
@@ -58,6 +59,26 @@
     recordAction('click', e.target);
   }, true);
 
+  document.addEventListener('mouseover', (e) => {
+    if (!isRecording) return;
+    if (isAutoFlowElement(e.target)) return;
+
+    if (hoverTimer) clearTimeout(hoverTimer);
+
+    hoverTimer = setTimeout(() => {
+      if (e.target === document.body || e.target === document.documentElement) return;
+      if (lastHoverElement === e.target) return;
+
+      console.log('AutoFlow: Action recorded (hover)');
+      recordAction('hover', e.target);
+      lastHoverElement = e.target;
+    }, 500);
+  }, true);
+
+  document.addEventListener('mouseout', (e) => {
+    if (hoverTimer) clearTimeout(hoverTimer);
+  }, true);
+
   document.addEventListener('input', (e) => {
     if (!isRecording) return;
     if (e.target.type === 'file') return;
@@ -68,7 +89,7 @@
     if (val === undefined || e.target.getAttribute('contenteditable') === 'true') {
       val = e.target.innerText || e.target.textContent;
     }
-    
+
     console.log('AutoFlow: Action recorded:', val);
     recordAction('input', e.target, val);
   }, true);
@@ -76,11 +97,11 @@
   document.addEventListener('change', async (e) => {
     if (!isRecording) return;
     if (isAutoFlowElement(e.target)) return;
-    
+
     if (e.target.type === 'file' && e.target.files.length > 0) {
       const fileName = e.target.files[0].name;
       const realPath = await showCustomPathModal(fileName);
-      
+
       if (realPath) {
         if (!realPath.includes('...')) {
           recordAction('file', e.target, { fileName, filePath: realPath });
@@ -94,9 +115,11 @@
   }, true);
 
   function isAutoFlowElement(el) {
-    if (!el) return false;
-    // Ignore anything inside our modals or with our prefix
-    return el.closest('[id^="af-"]') || el.id.startsWith('af-');
+    if (!el || typeof el.closest !== 'function') return false;
+    // Ignore our own UI and dynamic loading overlays
+    return el.closest('[id^="af-"]') ||
+      el.id.startsWith('af-') ||
+      el.closest('biz-activity-indicator-singleton');
   }
 
   async function replaySession(actions, sessionId) {
@@ -104,9 +127,9 @@
     replayActions = actions;
     currentReplayIndex = 0;
     isReplayPaused = false;
-    
+
     showReplayControls(actions.length);
-    
+
     while (currentReplayIndex < replayActions.length) {
       // If a newer session started, kill this one
       if (activeSessionId !== sessionId) return;
@@ -118,9 +141,9 @@
 
       const action = replayActions[currentReplayIndex];
       updateReplayProgress(currentReplayIndex + 1, replayActions.length);
-      
-      // Wait for recorded delay
-      const waitTime = Math.max(action.delay || 0, 500);
+
+      // Wait for recorded delay (speed up replay x2 to x5)
+      const waitTime = Math.max((action.delay || 0) * 0.3, 100);
       const startWait = Date.now();
       while (Date.now() - startWait < waitTime) {
         if (isReplayPaused || activeSessionId !== sessionId) break;
@@ -133,10 +156,11 @@
 
       let el = null;
       let attempts = 0;
-      while (!el && attempts < 15) {
+      while (!el && attempts < 30) {
         if (activeSessionId !== sessionId) return;
         el = document.querySelector(action.selector);
-        if (!el) { attempts++; await new Promise(r => setTimeout(r, 200)); }
+        // Decrease retry delay to 50ms from 200ms to find elements much faster
+        if (!el) { attempts++; await new Promise(r => setTimeout(r, 50)); }
       }
 
       if (el) {
@@ -144,9 +168,22 @@
         if (action.type === 'click') {
           if (el.type !== 'file') el.click();
         } else if (action.type === 'input') {
+          // Fix for wrapper components (like Angular's biz-text-field) sharing the same ID as the input
+          if (el.value === undefined && !el.isContentEditable) {
+            const innerInput = el.querySelector('input, textarea');
+            if (innerInput) el = innerInput;
+          }
+
           el.focus();
           if (el.value !== undefined) {
-            el.value = action.value;
+            // Bypass framework hijacked setters to ensure proper state updates
+            const proto = el.tagName === 'TEXTAREA' ? window.HTMLTextAreaElement : window.HTMLInputElement;
+            const nativeSetter = Object.getOwnPropertyDescriptor(proto?.prototype || {}, 'value')?.set;
+            if (nativeSetter) {
+              nativeSetter.call(el, action.value);
+            } else {
+              el.value = action.value;
+            }
           } else {
             el.innerText = action.value;
           }
@@ -157,6 +194,12 @@
           await performDebuggerUpload(action.selector, action.value.filePath);
           updateDemoSiteUI(action.value.filePath);
           el.dispatchEvent(new Event('change', { bubbles: true }));
+        } else if (action.type === 'hover') {
+          el.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, cancelable: true, view: window }));
+          el.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, cancelable: true, view: window }));
+          el.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, cancelable: true, view: window }));
+          // Provide a tiny delay to allow JS hover menus to open
+          await new Promise(r => setTimeout(r, 400));
         }
         currentReplayIndex++;
       } else {
@@ -164,7 +207,7 @@
         currentReplayIndex++;
       }
     }
-    
+
     console.log('AutoFlow: Replay finished.');
     setTimeout(removeReplayControls, 1000);
   }
@@ -186,8 +229,10 @@
   }
 
   function recordAction(type, element, value = null) {
+    if (type !== 'hover') lastHoverElement = null; // Reset consecutive hover check
+
     const selector = getUniqueSelector(element);
-    
+
     // FINAL SAFETY SHIELD: Never record our own UI
     if (selector.includes('af-') || isAutoFlowElement(element)) {
       console.log('AutoFlow: Recording suppressed for internal UI element');
@@ -200,13 +245,17 @@
 
   function getUniqueSelector(el) {
     if (!el || el.nodeType !== Node.ELEMENT_NODE) return 'body';
-    if (el.id && !el.id.startsWith('af-')) return `#${el.id}`;
-    
-    const dataAttr = Array.from(el.attributes).find(attr => 
+
+    const tagName = el.tagName.toLowerCase();
+
+    // Prefix tag name to ID to avoid targeting wrapper components with the same ID
+    if (el.id && !el.id.startsWith('af-')) return `${tagName}#${el.id}`;
+
+    const dataAttr = Array.from(el.attributes).find(attr =>
       attr.name.startsWith('data-test') || attr.name === 'name' || attr.name === 'role'
     );
-    if (dataAttr) return `[${dataAttr.name}="${dataAttr.value}"]`;
-    
+    if (dataAttr) return `${tagName}[${dataAttr.name}="${dataAttr.value}"]`;
+
     const path = [];
     while (el && el.nodeType === Node.ELEMENT_NODE) {
       let selector = el.nodeName.toLowerCase();
@@ -247,7 +296,7 @@
       input.focus();
       overlay.querySelector('#af-modal-save').onclick = () => { resolve(input.value.trim()); overlay.remove(); };
       overlay.querySelector('#af-modal-cancel').onclick = () => { resolve(null); overlay.remove(); };
-      input.onkeydown = (e) => { if(e.key==='Enter') overlay.querySelector('#af-modal-save').click(); };
+      input.onkeydown = (e) => { if (e.key === 'Enter') overlay.querySelector('#af-modal-save').click(); };
     });
   }
 
@@ -280,7 +329,7 @@
       <button id="af-stop-btn" style="background:none;border:1px solid #f38ba8;color:#f38ba8;padding:8px 16px;border-radius:8px;cursor:pointer;">Stop</button>
     `;
     document.body.appendChild(div);
-    div.querySelector('#af-pause-btn').onclick = function() {
+    div.querySelector('#af-pause-btn').onclick = function () {
       isReplayPaused = !isReplayPaused;
       this.textContent = isReplayPaused ? 'Resume' : 'Pause';
       this.style.background = isReplayPaused ? '#cba6f7' : '#313244';

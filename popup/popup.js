@@ -139,6 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <span class="session-meta">${session.actions.length} steps</span>
           </div>
           <div class="session-controls" style="display:flex; gap:4px;">
+            <button class="rename-btn small-btn" title="Rename Session" data-id="${session.id}">
+              <span style="font-size: 10px;">✏️</span>
+            </button>
             <button class="export-btn small-btn" title="Export JSON">
               <span style="font-size: 10px;">💾</span>
             </button>
@@ -158,6 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         item.querySelector('.play-btn').addEventListener('click', () => {
           replaySession(session.actions);
+        });
+
+        item.querySelector('.rename-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          renameSession(session.id, session.name);
         });
 
         item.querySelector('.export-btn').addEventListener('click', (e) => {
@@ -184,6 +192,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm('Are you sure you want to delete this recording?')) return;
     chrome.storage.local.get({ sessions: [] }, (data) => {
       const sessions = data.sessions.filter(s => s.id !== sessionId);
+      chrome.storage.local.set({ sessions }, () => {
+        loadSessions();
+      });
+    });
+  }
+
+  function renameSession(sessionId, currentName) {
+    const newName = prompt('Enter new name for this flow:', currentName);
+    if (!newName || newName.trim() === '' || newName === currentName) return;
+
+    chrome.storage.local.get({ sessions: [] }, (data) => {
+      const sessions = data.sessions.map(s => {
+        if (s.id === sessionId) {
+          return { ...s, name: newName.trim() };
+        }
+        return s;
+      });
       chrome.storage.local.set({ sessions }, () => {
         loadSessions();
       });
