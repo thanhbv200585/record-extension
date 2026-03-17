@@ -2,6 +2,15 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.7.0] - 2026-03-18
+### ✨ Added
+- **Dashboard Pro Tools**: Added "Copy as cURL" and "Re-execute Request" for deep API debugging.
+- **Smart Text Wrapping**: Enabled multi-line wrapping for long selectors and API URLs to ensure readability.
+- **Copy to Clipboard**: Added quick-copy buttons for Request/Response Headers and Payloads.
+- **Dual-Pane Dashboard**: Introducing a professional 3-column layout. View your automation steps and the network log side-by-side.
+- **Full Network Inspection**: DevTools-style network log showing Request/Response Headers, Status codes, and full Payloads.
+- **Enhanced Selector Engine**: Multi-level attribute priority and nearest-ID anchoring for maximum replay stability.
+
 ## [1.6.0] - 2026-03-18
 ### ✨ Added
 - **Deep API Inspection**: Capture full Request and Response bodies for all background API calls triggered during automation.

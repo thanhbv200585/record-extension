@@ -208,18 +208,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="api-details">
                     <div style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                        <button class="curl-btn">Copy cURL</button>
+                        <button class="replay-btn">Re-execute</button>
                         <div style="font-size: 10px; color: var(--text-dim); align-self: center; margin-left: auto; word-break: break-all;">${req.url}</div>
                     </div>
                     
                     <div class="payload-box">
-                        <div class="payload-title">Request Headers</div>
+                        <div class="payload-title">
+                            Request Headers 
+                            <button class="copy-btn" data-type="headers" data-target="req-headers">Copy</button>
+                        </div>
                         <div class="req-headers" style="font-family: monospace; font-size: 11px; padding: 10px; background:#111; border-radius:8px; line-height:1.4; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px;">
                             ${headersHtml(req.headers)}
                         </div>
                     </div>
 
                     <div class="payload-box">
-                        <div class="payload-title">Response Headers</div>
+                        <div class="payload-title">
+                            Response Headers
+                            <button class="copy-btn" data-type="headers" data-target="res-headers">Copy</button>
+                        </div>
                         <div class="res-headers" style="font-family: monospace; font-size: 11px; padding: 10px; background:#111; border-radius:8px; line-height:1.4; border: 1px solid rgba(255,255,255,0.05);">
                             ${headersHtml(req.responseHeaders)}
                         </div>
@@ -227,14 +235,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     ${reqBody ? `
                         <div class="payload-box">
-                            <div class="payload-title">Request Body</div>
+                            <div class="payload-title">
+                                Request Body
+                                <button class="copy-btn" data-target="req-body">Copy</button>
+                            </div>
                             <pre class="payload-content req-body">${reqBody}</pre>
                         </div>
                     ` : ''}
 
                     ${resBody ? `
                         <div class="payload-box">
-                            <div class="payload-title">Response Body</div>
+                            <div class="payload-title">
+                                Response Body
+                                <button class="copy-btn" data-target="res-body">Copy</button>
+                            </div>
                             <pre class="payload-content res-body">${resBody}</pre>
                         </div>
                     ` : ''}
@@ -247,6 +261,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 details.classList.toggle('expand');
             });
 
+            // Copy logic
+            item.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const targetClass = btn.getAttribute('data-target');
+                    const targetEl = item.querySelector(`.${targetClass}`);
+                    let textToCopy = '';
+
+                    if (btn.getAttribute('data-type') === 'headers') {
+                        textToCopy = Array.from(targetEl.querySelectorAll('div'))
+                            .map(div => div.innerText.trim())
+                            .join('\n');
+                    } else {
+                        textToCopy = targetEl.innerText;
+                    }
+
+                    copyText(textToCopy, btn);
+                });
+            });
+
+            // cURL logic
+            item.querySelector('.curl-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const curl = generateCurl(req);
+                copyText(curl, item.querySelector('.curl-btn'));
+            });
+
+            // Re-execute logic
+            item.querySelector('.replay-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                reExecuteRequest(req, item.querySelector('.replay-btn'));
+            });
+
 
 
 
@@ -256,6 +303,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+
+    function generateCurl(req) {
+        let curl = `curl '${req.url}' \\\n  -X '${req.method}'`;
+
+        if (req.headers) {
+            Object.entries(req.headers).forEach(([k, v]) => {
+                curl += ` \\\n  -H '${k}: ${v}'`;
+            });
+        }
+
+        if (req.requestBody) {
+            curl += ` \\\n  --data-raw '${req.requestBody}'`;
+        }
+
+        return curl;
+    }
+
+    function reExecuteRequest(req, btn) {
+        if (btn.classList.contains('loading')) return;
+
+        const originalText = btn.textContent;
+        btn.textContent = 'Executing...';
+        btn.classList.add('loading');
+
+        const options = {
+            method: req.method,
+            headers: req.headers
+        };
+
+        if (req.method !== 'GET' && req.method !== 'HEAD' && req.requestBody) {
+            options.body = req.requestBody;
+        }
+
+        fetch(req.url, options)
+            .then(async (res) => {
+                const status = res.status;
+                const text = await res.text();
+                alert(`Execution Result:\nStatus: ${status}\n\nResponse snippet:\n${text.substring(0, 500)}${text.length > 500 ? '...' : ''}`);
+            })
+            .catch(err => {
+                alert(`Execution Failed:\n${err.message}`);
+            })
+            .finally(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('loading');
+            });
+    }
+
+    function copyText(text, btn) {
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
 
     function saveSession(updatedSession) {
         chrome.storage.local.get({ sessions: [] }, (data) => {

@@ -9,8 +9,9 @@ A powerful Chrome extension designed for developers to record and replay user in
 
 ## ✨ Features
 
-- **API Payload Inspection**: Expandable API rows in the Dashboard reveal detailed JSON payloads with syntax highlighting.
-- **Deep API Inspection**: Capture full Request and Response bodies for all background API calls.
+- **Dual-Pane Dashboard**: Manage actions and inspect network traffic side-by-side.
+- **Developer API Tools**: Copy any request as **cURL** or **Re-execute** it instantly from the dashboard.
+- **Full Network Inspection**: View Headers, Status, and Payloads for every request like a pro.
 - **Advanced Step Editor**: Fine-tune your flows with inline editing and step management.
 - **Variable System**: Dynamic data injection using `{{variables}}`.
 - **Smart Recording**: Captures clicks, text inputs, selects, hovers, and file uploads.
