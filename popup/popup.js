@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initialize UI
   chrome.runtime.sendMessage({ type: 'GET_STATE' }, (response) => {
-    updateUI(response.isRecording);
+    updateUI(response.isRecording, response.mockingActive);
   });
 
   loadSessions();
@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const dashboardBtn = document.getElementById('open-dashboard');
   dashboardBtn.addEventListener('click', () => {
     chrome.tabs.create({ url: 'popup/manager.html' });
+  });
+
+  const testerBtn = document.getElementById('open-tester');
+  testerBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: 'tester/tester.html' });
   });
 
   // Export/Import listeners
@@ -112,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function updateUI(isRecording) {
+  function updateUI(isRecording, mockingActive) {
     if (isRecording) {
       recordBtn.className = 'main-btn btn-stop';
       recordText.textContent = 'Stop Recording';
@@ -121,8 +126,8 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       recordBtn.className = 'main-btn btn-record';
       recordText.textContent = 'Start Recording';
-      statusBadge.textContent = 'Idle';
-      statusBadge.className = 'status-badge';
+      statusBadge.textContent = mockingActive ? 'Mocking active' : 'Idle';
+      statusBadge.className = mockingActive ? 'status-badge success' : 'status-badge';
     }
   }
 

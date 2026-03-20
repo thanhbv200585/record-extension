@@ -2,6 +2,21 @@
 
 All notable changes to the **AutoFlow Recorder** project will be documented in this file.
 
+## [1.9.0] - 2026-03-20
+### ✨ Added
+- **AutoFlow API Tester**: A dedicated standalone tool for professional API testing without leaving your browser.
+- **Smart cURL Import**: Instantly populate requests by pasting cURL commands. Optimized for both Unix and Windows (`^` escaping) formats.
+- **Dynamic Request Builder**: Real-time Key-Value editor for URL parameters and headers. Support for JSON and Raw request bodies.
+- **Dual Theme Mode**: Modern Glassmorphism UI with one-click toggle between Dark and Light themes.
+
+## [1.8.0] - 2026-03-18
+### ✨ Added
+- **API Mocking Engine**: Native request interception via Chrome Debugger `Fetch` domain. Support for custom response status codes and JSON bodies.
+- **Mocks Manager**: Dedicated dashboard tab to manage URL patterns (wildcards supported), HTTP methods, and response payloads.
+- **Quick Mocking**: New "Mock this" button in the Network log for instant rule creation from captured traffic.
+- **Robust UTF-8 Support**: Fixed encoding issues to ensure Vietnamese and other non-Latin characters are handled correctly in mock responses.
+- **Mocking Indicator**: Visual status badge in the extension popup when mocking is active.
+
 ## [1.7.0] - 2026-03-18
 ### ✨ Added
 - **Dashboard Pro Tools**: Added "Copy as cURL" and "Re-execute Request" for deep API debugging.

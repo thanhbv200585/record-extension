@@ -11,11 +11,66 @@ document.addEventListener('DOMContentLoaded', () => {
     const networkStats = document.getElementById('network-stats');
     const sessionStats = document.getElementById('session-stats');
 
+    // Mocks UI
+    const tabNetwork = document.getElementById('tab-network');
+    const tabMocks = document.getElementById('tab-mocks');
+    const networkView = document.getElementById('network-log-view');
+    const mockView = document.getElementById('mock-manager-view');
+    const mockList = document.getElementById('mock-list');
+    const addMockBtn = document.getElementById('add-mock');
+    const enableMockingCheckbox = document.getElementById('enable-mocking');
+
     let currentEditingSession = null;
     let localVariables = {};
+    let localMocks = [];
 
     // Initial load
     refreshAll();
+
+    // Tab Switching
+    tabNetwork.addEventListener('click', () => {
+        tabNetwork.classList.add('active-tab');
+        tabNetwork.style.color = 'var(--text-main)';
+        tabMocks.classList.remove('active-tab');
+        tabMocks.style.color = 'var(--text-dim)';
+        networkView.style.display = 'flex';
+        mockView.style.display = 'none';
+    });
+
+    tabMocks.addEventListener('click', () => {
+        tabMocks.classList.add('active-tab');
+        tabMocks.style.color = 'var(--text-main)';
+        tabNetwork.classList.remove('active-tab');
+        tabNetwork.style.color = 'var(--text-dim)';
+        mockView.style.display = 'flex';
+        networkView.style.display = 'none';
+        renderMocks();
+    });
+
+    addMockBtn.addEventListener('click', () => {
+        const urlPattern = prompt('Enter URL Pattern to match (e.g. /api/user/*):', '');
+        if (!urlPattern) return;
+
+        const newMock = {
+            id: Date.now(),
+            urlPattern: urlPattern,
+            method: 'GET',
+            status: 200,
+            responseBody: '{"message": "Mocked response"}',
+            enabled: true
+        };
+
+        localMocks.push(newMock);
+        saveMocks();
+        renderMocks();
+    });
+
+    enableMockingCheckbox.addEventListener('change', (e) => {
+        chrome.storage.local.set({ mockingEnabled: e.target.checked }, () => {
+            chrome.runtime.sendMessage({ type: 'UPDATE_MOCKING_STATE' });
+        });
+        showSaveBanner(e.target.checked ? 'API Mocking Enabled' : 'API Mocking Disabled');
+    });
 
     addVarBtn.addEventListener('click', () => {
         const key = prompt('Enter variable name (e.g. USER_ID):');
@@ -46,6 +101,85 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshAll() {
         loadSessions();
         loadVariables();
+        loadMocks();
+    }
+
+    function loadMocks() {
+        chrome.storage.local.get({ mocks: [], mockingEnabled: false }, (data) => {
+            localMocks = data.mocks || [];
+            enableMockingCheckbox.checked = !!data.mockingEnabled;
+            renderMocks();
+        });
+    }
+
+    function saveMocks() {
+        chrome.storage.local.set({ mocks: localMocks });
+    }
+
+    function renderMocks() {
+        mockList.innerHTML = '';
+        if (localMocks.length === 0) {
+            mockList.innerHTML = '<div style="color: var(--text-dim); text-align: center; margin-top: 20px; font-size: 11px;">No mock rules defined</div>';
+            return;
+        }
+
+        localMocks.forEach((mock, index) => {
+            const div = document.createElement('div');
+            div.className = 'mock-item';
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                        <span class="mock-badge">${mock.method}</span>
+                        <input type="text" class="mock-pattern-input" value="${mock.urlPattern}" style="background: transparent; border: none; color: var(--text-main); font-family: monospace; font-size: 11px; width: 180px;" title="URL Pattern">
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="checkbox" ${mock.enabled ? 'checked' : ''} class="mock-toggle" title="Toggle this rule">
+                        <button class="delete-mock small-btn" style="padding: 2px 4px;">×</button>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <span style="font-size: 10px; color: var(--text-dim); align-self: center;">Status:</span>
+                    <input type="number" class="mock-status-input" value="${mock.status}" style="width: 50px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fbbf24; font-size: 10px; border-radius: 4px; padding: 2px 4px;">
+                    <select class="mock-method-select" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--text-main); font-size: 10px; border-radius: 4px;">
+                        <option value="GET" ${mock.method === 'GET' ? 'selected' : ''}>GET</option>
+                        <option value="POST" ${mock.method === 'POST' ? 'selected' : ''}>POST</option>
+                        <option value="PUT" ${mock.method === 'PUT' ? 'selected' : ''}>PUT</option>
+                        <option value="DELETE" ${mock.method === 'DELETE' ? 'selected' : ''}>DELETE</option>
+                        <option value="PATCH" ${mock.method === 'PATCH' ? 'selected' : ''}>PATCH</option>
+                    </select>
+                </div>
+                <textarea class="mock-body-input" style="width: 100%; height: 60px; background: #000; border: 1px solid rgba(255,255,255,0.05); color: #10b981; font-family: monospace; font-size: 10px; border-radius: 8px; padding: 8px; resize: vertical;" placeholder="Response Body (JSON)">${mock.responseBody}</textarea>
+            `;
+
+            const patternInput = div.querySelector('.mock-pattern-input');
+            const statusInput = div.querySelector('.mock-status-input');
+            const methodSelect = div.querySelector('.mock-method-select');
+            const bodyInput = div.querySelector('.mock-body-input');
+            const toggle = div.querySelector('.mock-toggle');
+
+            const update = () => {
+                mock.urlPattern = patternInput.value;
+                mock.status = parseInt(statusInput.value);
+                mock.method = methodSelect.value;
+                mock.responseBody = bodyInput.value;
+                mock.enabled = toggle.checked;
+                saveMocks();
+            };
+
+            patternInput.addEventListener('change', update);
+            statusInput.addEventListener('change', update);
+            methodSelect.addEventListener('change', update);
+            bodyInput.addEventListener('change', update);
+            toggle.addEventListener('change', update);
+
+            div.querySelector('.delete-mock').addEventListener('click', () => {
+                localMocks.splice(index, 1);
+                saveMocks();
+                renderMocks();
+            });
+
+            mockList.appendChild(div);
+        });
     }
 
     function loadSessions() {
@@ -210,6 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
                         <button class="curl-btn">Copy cURL</button>
                         <button class="replay-btn">Re-execute</button>
+                        <button class="create-mock-btn" style="background: rgba(129, 140, 248, 0.2); color: #818cf8; border-color: rgba(129, 140, 248, 0.3);">Mock this</button>
                         <div style="font-size: 10px; color: var(--text-dim); align-self: center; margin-left: auto; word-break: break-all;">${req.url}</div>
                     </div>
                     
@@ -292,6 +427,26 @@ document.addEventListener('DOMContentLoaded', () => {
             item.querySelector('.replay-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 reExecuteRequest(req, item.querySelector('.replay-btn'));
+            });
+
+            // Create Mock logic
+            item.querySelector('.create-mock-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const url = new URL(req.url);
+                const mock = {
+                    id: Date.now(),
+                    urlPattern: `*${url.pathname}${url.search ? url.search : ''}*`,
+                    method: req.method,
+                    status: req.status || 200,
+                    responseBody: resBody || '{}',
+                    enabled: true
+                };
+                localMocks.unshift(mock);
+                saveMocks();
+                showSaveBanner('Mock rule created!');
+                
+                // Switch to mocks tab
+                tabMocks.click();
             });
 
 

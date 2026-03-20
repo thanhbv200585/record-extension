@@ -164,7 +164,24 @@
             transform: translateY(-1px);
         }
 
-        /* Step Editor Styles */
+        /* Mocking Styles */
+        .mock-item {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+
+        .mock-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #818cf8;
+            color: white;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
         .step-item {
             background: var(--card-bg);
             border-radius: 12px;
@@ -444,15 +461,33 @@
             <div id="step-editor-list"></div>
         </div>
 
-        <!-- Pane 3: Network Log -->
+        <!-- Pane 3: Network & Mocks -->
         <div class="network-pane">
-            <div class="section-header">
-                <span>⚡</span> Network Log
-                <div id="network-stats" style="font-weight: normal; font-size: 11px; margin-left: auto;"></div>
+            <div class="section-header" style="justify-content: space-between; gap: 0;">
+                <div style="display: flex; gap: 16px;">
+                    <span id="tab-network" class="active-tab" style="cursor: pointer; color: var(--text-main);">⚡ Network</span>
+                    <span id="tab-mocks" style="cursor: pointer; color: var(--text-dim);">🎭 Mocks</span>
+                </div>
+                <div id="network-stats" style="font-weight: normal; font-size: 11px;"></div>
             </div>
-            <div id="network-log-list">
-                <div style="color: var(--text-dim); font-style: italic; text-align: center; margin-top: 40px;">Select a
-                    flow to view API calls</div>
+
+            <!-- Network List View -->
+            <div id="network-log-view" style="display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;">
+                <div id="network-log-list" style="flex-grow: 1; overflow-y: auto; margin-top: 12px;">
+                    <div style="color: var(--text-dim); font-style: italic; text-align: center; margin-top: 40px;">Select a flow to view API calls</div>
+                </div>
+            </div>
+
+            <!-- Mocks Management View -->
+            <div id="mock-manager-view" style="display: none; flex-direction: column; flex-grow: 1; overflow: hidden; margin-top: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-size: 12px; color: var(--text-dim);">Background request interception</span>
+                    <label class="switch-container" style="display: flex; align-items: center; gap: 8px; font-size: 11px; cursor: pointer;">
+                        <input type="checkbox" id="enable-mocking"> ENABLED
+                    </label>
+                </div>
+                <div id="mock-list" style="flex-grow: 1; overflow-y: auto;"></div>
+                <button id="add-mock" class="secondary-btn" style="width: 100%; margin-top: 12px;">+ Create Mock Rule</button>
             </div>
         </div>
     </div>

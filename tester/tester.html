@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoFlow API Tester</title>
+    <link rel="stylesheet" href="tester.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="brand-group">
+                <span class="logo">🚀</span>
+                <h1>API Tester</h1>
+                <span class="version">v1.0</span>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="icon-btn" title="Toggle Theme">🌓</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Request Section -->
+            <section class="request-panel card">
+                <div class="url-bar">
+                    <div class="select-wrapper">
+                        <select id="method-select" class="method-picker">
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="PATCH">PATCH</option>
+                            <option value="DELETE">DELETE</option>
+                        </select>
+                    </div>
+                    <input type="text" id="url-input" placeholder="Enter request URL (e.g., https://api.example.com/data)" value="https://jsonplaceholder.typicode.com/posts/1">
+                    <button id="import-curl-btn" class="secondary-btn-outline" title="Import from cURL">
+                        <span>Import cURL</span>
+                    </button>
+                    <button id="send-btn" class="primary-btn">
+                        <span class="btn-text">Send</span>
+                        <span class="btn-icon">✈️</span>
+                    </button>
+                </div>
+
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="params">Params</button>
+                        <button class="tab-btn" data-tab="headers">Headers</button>
+                        <button class="tab-btn" data-tab="body">Body</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <!-- Params Tab -->
+                        <div id="tab-params" class="tab-pane active">
+                            <div class="kv-editor" id="params-editor">
+                                <div class="kv-header">
+                                    <span>Key</span>
+                                    <span>Value</span>
+                                    <span></span>
+                                </div>
+                                <div class="kv-rows" id="params-rows">
+                                    <!-- Rows added dynamically -->
+                                </div>
+                                <button class="add-row-btn" data-type="params">+ Add Parameter</button>
+                            </div>
+                        </div>
+
+                        <!-- Headers Tab -->
+                        <div id="tab-headers" class="tab-pane">
+                            <div class="kv-editor" id="headers-editor">
+                                <div class="kv-header">
+                                    <span>Key</span>
+                                    <span>Value</span>
+                                    <span></span>
+                                </div>
+                                <div class="kv-rows" id="headers-rows">
+                                    <div class="kv-row">
+                                        <input type="text" placeholder="Content-Type" class="kv-key" value="application/json" readonly>
+                                        <input type="text" placeholder="Value" class="kv-value" value="application/json" readonly>
+                                        <button class="remove-row-btn" disabled>×</button>
+                                    </div>
+                                </div>
+                                <button class="add-row-btn" data-type="headers">+ Add Header</button>
+                            </div>
+                        </div>
+
+                        <!-- Body Tab -->
+                        <div id="tab-body" class="tab-pane">
+                            <div class="body-options">
+                                <label><input type="radio" name="body-type" value="none" checked> None</label>
+                                <label><input type="radio" name="body-type" value="json"> JSON</label>
+                                <label><input type="radio" name="body-type" value="raw"> Raw</label>
+                            </div>
+                            <div class="editor-container">
+                                <textarea id="body-editor" placeholder='{ "key": "value" }' spellcheck="false"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Response Section -->
+            <section class="response-panel card">
+                <div class="panel-header">
+                    <h2>Response</h2>
+                    <div id="response-meta" class="response-meta hidden">
+                        <span class="status-badge" id="res-status">200 OK</span>
+                        <span class="meta-item"><span class="label">Time:</span> <span id="res-time">45ms</span></span>
+                        <span class="meta-item"><span class="label">Size:</span> <span id="res-size">1.2 KB</span></span>
+                    </div>
+                </div>
+
+                <div id="response-placeholder" class="placeholder">
+                    <div class="placeholder-content">
+                        <span class="placeholder-icon">📥</span>
+                        <p>Click Send to get a response</p>
+                    </div>
+                </div>
+
+                <div id="response-content" class="tabs-container hidden">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="res-body">Body</button>
+                        <button class="tab-btn" data-tab="res-headers">Headers</button>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <div id="tab-res-body" class="tab-pane active">
+                            <pre id="response-viewer" class="code-block language-json"></pre>
+                        </div>
+                        <div id="tab-res-headers" class="tab-pane">
+                            <div id="res-headers-display" class="kv-display">
+                                <!-- Headers injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loading-overlay" class="loading-overlay hidden">
+                    <div class="spinner"></div>
+                    <p>Sending Request...</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- cURL Import Modal -->
+    <div id="curl-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Import from cURL</h3>
+                <button id="close-modal" class="icon-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">Paste your cURL command here (copied from Browser Network DevTools)</p>
+                <textarea id="curl-paste-area" placeholder="curl 'https://api.example.com/...' -H '...' --data-raw '...'"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-import" class="tab-btn">Cancel</button>
+                <button id="confirm-import" class="primary-btn">Import Request</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="tester.js"></script>
+</body>
+</html>

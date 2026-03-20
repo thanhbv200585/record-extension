@@ -4,17 +4,20 @@ A powerful Chrome extension designed for developers to record and replay user in
 
 ![Premium Design](https://img.shields.io/badge/Design-Premium-blueviolet)
 ![Manifest V3](https://img.shields.io/badge/Manifest-V3-success)
-![Version](https://img.shields.io/badge/Version-1.6.0-blue)
+![Version](https://img.shields.io/badge/Version-1.8.0-blue)
 ![Mode](https://img.shields.io/badge/Mode-Developer-orange)
 
 ## ✨ Features
 
+- **Native API Mocking**: Intercept and substitute background API responses directly from the dashboard using the Chrome Debugger.
+- **"Mock this" Shortcut**: Instantly create mock rules from captured network requests with one click.
 - **Dual-Pane Dashboard**: Manage actions and inspect network traffic side-by-side.
 - **Developer API Tools**: Copy any request as **cURL** or **Re-execute** it instantly from the dashboard.
 - **Full Network Inspection**: View Headers, Status, and Payloads for every request like a pro.
 - **Advanced Step Editor**: Fine-tune your flows with inline editing and step management.
 - **Variable System**: Dynamic data injection using `{{variables}}`.
 - **Smart Recording**: Captures clicks, text inputs, selects, hovers, and file uploads.
+- **Smart DatePicker Support**: Enhanced selector logic for complex components and framework-generated elements.
 - **Smart Coalescing**: Merges fast typing into single actions to prevent background API spam.
 - **Resilient Selectors**: Uses a multi-layered selection strategy.
 - **Turbo Replay**: Optimized execution flow that runs up to 3x faster than real-time.
